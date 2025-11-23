@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '@clerk/nextjs/server';
 import OpenAI from 'openai';
 import { db } from '@/lib/firebase';
 import { doc, setDoc } from 'firebase/firestore';
@@ -11,6 +12,8 @@ interface GenerateRequest {
   businessName: string;
   city: string;
   trade: string;
+  phone?: string;
+  email?: string;
 }
 
 interface SiteContent {
@@ -41,8 +44,9 @@ function slugify(text: string): string {
 
 export async function POST(request: NextRequest) {
   try {
+    const { userId } = await auth();
     const body: GenerateRequest = await request.json();
-    const { businessName, city, trade } = body;
+    const { businessName, city, trade, phone, email } = body;
 
     if (!businessName || !city || !trade) {
       return NextResponse.json(
@@ -93,7 +97,12 @@ Rules:
     await setDoc(doc(db, 'sites', siteId), {
       name: businessName,
       subdomain,
+      contact: {
+        phone: phone || '',
+        email: email || '',
+      },
       content: siteContent,
+      userId: userId || null,
       createdAt: new Date().toISOString(),
     });
 

@@ -14,6 +14,8 @@ export default function HomePage() {
   const [businessName, setBusinessName] = useState('');
   const [city, setCity] = useState('');
   const [trade, setTrade] = useState('');
+  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: FormEvent) => {
@@ -32,7 +34,7 @@ export default function HomePage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ businessName, city, trade }),
+        body: JSON.stringify({ businessName, city, trade, phone, email }),
       });
 
       const data = await response.json();
@@ -100,7 +102,7 @@ export default function HomePage() {
             </div>
 
             {/* Trade */}
-            <div className="mb-8">
+            <div className="mb-6">
               <label htmlFor="trade" className="block text-sm font-medium text-gray-700 mb-2">
                 Trade
               </label>
@@ -118,6 +120,38 @@ export default function HomePage() {
                   </option>
                 ))}
               </select>
+            </div>
+
+            {/* Phone Number */}
+            <div className="mb-6">
+              <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
+                Phone Number
+              </label>
+              <input
+                type="tel"
+                id="phone"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="e.g., (555) 123-4567"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
+                disabled={isLoading}
+              />
+            </div>
+
+            {/* Public Email */}
+            <div className="mb-8">
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                Public Email
+              </label>
+              <input
+                type="email"
+                id="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="e.g., contact@yourbusiness.com"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
+                disabled={isLoading}
+              />
             </div>
 
             {/* Submit Button */}

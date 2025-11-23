@@ -1,21 +1,29 @@
-import { NextRequest, NextResponse } from "next/server";
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
 
-export function middleware(request: NextRequest) {
-  const host = request.headers.get("host") || "";
-  const url = request.nextUrl.clone();
+const isPublicRoute = createRouteMatcher([
+  "/",
+  "/sign-in(.*)",
+  "/sign-up(.*)",
+  "/api/generate",
+  "/site(.*)",
+]);
+
+const rootDomains = ["localhost", "127.0.0.1"];
+
+export default clerkMiddleware(async (auth, req) => {
+  const host = req.headers.get("host") || "";
+  const url = req.nextUrl.clone();
 
   // Remove port from host for comparison
   const hostname = host.split(":")[0];
 
-  // Define root domains (add production domain here later)
-  const rootDomains = ["localhost", "127.0.0.1"];
-
   // Check if this is a subdomain request
-  // e.g., "test.localhost" -> subdomain is "test"
   const isRootDomain = rootDomains.some(
     (domain) => hostname === domain || hostname === `www.${domain}`
   );
 
+  // 1. Subdomain Logic (Public Renderer)
   if (!isRootDomain) {
     // Extract subdomain: "test.localhost" -> "test"
     const subdomain = hostname.split(".")[0];
@@ -28,9 +36,14 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  // Root domain - allow pass-through to app home
+  // 2. Protect non-public routes (like /dashboard)
+  if (!isPublicRoute(req)) {
+    await auth.protect();
+  }
+
+  // Default Next.js behavior
   return NextResponse.next();
-}
+});
 
 export const config = {
   matcher: [

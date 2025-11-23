@@ -1,5 +1,9 @@
+export const revalidate = 0;
+
 import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
+import StickyFooter from '@/components/StickyFooter';
+import LeadForm from '@/components/LeadForm';
 
 interface PageProps {
   params: Promise<{ subdomain: string }>;
@@ -23,8 +27,13 @@ interface SiteContent {
 }
 
 interface SiteData {
+  id: string;
   name: string;
   subdomain: string;
+  contact?: {
+    phone: string;
+    email: string;
+  };
   content?: SiteContent;
 }
 
@@ -43,7 +52,11 @@ async function getSiteBySubdomain(subdomain: string): Promise<SiteData | null> {
     return null;
   }
 
-  return snapshot.docs[0].data() as SiteData;
+  const doc = snapshot.docs[0];
+  return {
+    id: doc.id,
+    ...doc.data(),
+  } as SiteData;
 }
 
 export default async function RendererPage({ params }: PageProps) {
@@ -70,17 +83,35 @@ export default async function RendererPage({ params }: PageProps) {
 
   const { hero, services, about, theme } = site.content;
   const bgColor = themeColors[theme] || themeColors.blue;
+  const phone = site.contact?.phone || '';
+  const email = site.contact?.email || '';
 
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen pb-16 md:pb-0">
       {/* Hero Section */}
       <section className={`${bgColor} text-white py-24 px-4`}>
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-5xl font-bold mb-6">{hero.headline}</h1>
           <p className="text-xl mb-8 opacity-90">{hero.subheadline}</p>
-          <button className="bg-white text-gray-900 font-semibold px-8 py-3 rounded-lg hover:bg-gray-100 transition-colors">
-            {hero.cta}
-          </button>
+
+          {/* Phone Number Display */}
+          {phone && (
+            <a
+              href={`tel:${phone}`}
+              className="inline-block mb-6 text-lg font-medium hover:underline"
+            >
+              📞 {phone}
+            </a>
+          )}
+
+          <div>
+            <a
+              href="#lead-form"
+              className="inline-block bg-white text-gray-900 font-semibold px-8 py-3 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              {hero.cta}
+            </a>
+          </div>
         </div>
       </section>
 
@@ -110,12 +141,28 @@ export default async function RendererPage({ params }: PageProps) {
         </div>
       </section>
 
+      {/* Lead Form */}
+      <LeadForm siteId={site.id} />
+
       {/* Footer */}
       <footer className={`${bgColor} text-white py-8 px-4`}>
         <div className="max-w-4xl mx-auto text-center">
+          {phone && (
+            <p className="mb-2">
+              <a href={`tel:${phone}`} className="hover:underline">📞 {phone}</a>
+            </p>
+          )}
+          {email && (
+            <p className="mb-4">
+              <a href={`mailto:${email}`} className="hover:underline">✉️ {email}</a>
+            </p>
+          )}
           <p className="opacity-90">&copy; {new Date().getFullYear()} {site.name}. All rights reserved.</p>
         </div>
       </footer>
+
+      {/* Sticky Mobile Footer */}
+      <StickyFooter phone={phone} />
     </main>
   );
 }
