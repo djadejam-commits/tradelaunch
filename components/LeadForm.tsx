@@ -1,8 +1,6 @@
 "use client";
 
 import { useState, FormEvent } from "react";
-import { db } from "@/lib/firebase";
-import { collection, addDoc } from "firebase/firestore";
 
 interface LeadFormProps {
   siteId: string;
@@ -28,13 +26,22 @@ export default function LeadForm({ siteId }: LeadFormProps) {
     setError(null);
 
     try {
-      await addDoc(collection(db, "leads"), {
-        siteId,
-        name,
-        phone,
-        message,
-        createdAt: new Date().toISOString(),
+      const response = await fetch("/api/lead", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          siteId,
+          name,
+          phone,
+          message,
+        }),
       });
+
+      if (!response.ok) {
+        throw new Error("Failed to submit lead");
+      }
 
       setIsSuccess(true);
       setName("");

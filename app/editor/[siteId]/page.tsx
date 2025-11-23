@@ -7,6 +7,12 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
+interface Review {
+  name: string;
+  text: string;
+  rating: number;
+}
+
 interface SiteContent {
   hero: {
     headline: string;
@@ -21,6 +27,7 @@ interface SiteContent {
     heading: string;
     body: string;
   };
+  reviews?: Review[];
   theme: "blue" | "red" | "green";
 }
 
@@ -28,6 +35,10 @@ interface SiteData {
   name: string;
   subdomain: string;
   content: SiteContent;
+  contact?: {
+    phone: string;
+    email: string;
+  };
   userId: string | null;
 }
 
@@ -60,6 +71,10 @@ export default function EditorPage({ params }: PageProps) {
   const [aboutHeading, setAboutHeading] = useState("");
   const [aboutBody, setAboutBody] = useState("");
   const [theme, setTheme] = useState<"blue" | "red" | "green">("blue");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [regenerating, setRegenerating] = useState<"headline" | "about" | null>(null);
 
   // Unwrap params
   useEffect(() => {
@@ -101,6 +116,11 @@ export default function EditorPage({ params }: PageProps) {
             setAboutHeading(data.content.about.heading);
             setAboutBody(data.content.about.body);
             setTheme(data.content.theme);
+            // Initialize contact info
+            setPhone(data.contact?.phone || "");
+            setEmail(data.contact?.email || "");
+            // Initialize reviews
+            setReviews(data.content.reviews || []);
             setInitialized(true);
           }
         }
@@ -135,7 +155,12 @@ export default function EditorPage({ params }: PageProps) {
           hero: { headline, subheadline, cta },
           services,
           about: { heading: aboutHeading, body: aboutBody },
+          reviews,
           theme,
+        },
+        contact: {
+          phone,
+          email,
         },
       });
       console.log("Successfully updated document:", siteId);
@@ -151,6 +176,56 @@ export default function EditorPage({ params }: PageProps) {
     const updated = [...services];
     updated[index] = { ...updated[index], [field]: value };
     setServices(updated);
+  };
+
+  const addReview = () => {
+    setReviews([...reviews, { name: "", text: "", rating: 5 }]);
+  };
+
+  const updateReview = (index: number, field: keyof Review, value: string | number) => {
+    const updated = [...reviews];
+    updated[index] = { ...updated[index], [field]: value };
+    setReviews(updated);
+  };
+
+  const deleteReview = (index: number) => {
+    setReviews(reviews.filter((_, i) => i !== index));
+  };
+
+  const handleRegenerate = async (field: "headline" | "about") => {
+    if (!siteId) return;
+
+    setRegenerating(field);
+    try {
+      const response = await fetch("/api/regenerate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ siteId, field }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to regenerate content");
+      }
+
+      const data = await response.json();
+
+      if (field === "headline" && data.content) {
+        setHeadline(data.content.headline || headline);
+        setSubheadline(data.content.subheadline || subheadline);
+        setCta(data.content.cta || cta);
+        showToast("Hero section regenerated!");
+      } else if (field === "about" && data.content) {
+        setAboutHeading(data.content.heading || aboutHeading);
+        setAboutBody(data.content.body || aboutBody);
+        showToast("About section regenerated!");
+      }
+    } catch (error) {
+      console.error("Error regenerating:", error);
+      showToast("Failed to regenerate content");
+    }
+    setRegenerating(null);
   };
 
   if (!isLoaded || loading) {
@@ -233,9 +308,29 @@ export default function EditorPage({ params }: PageProps) {
 
           {/* Hero Section */}
           <div className="mb-8">
-            <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-3">
-              Hero Section
-            </h3>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">
+                Hero Section
+              </h3>
+              <button
+                onClick={() => handleRegenerate("headline")}
+                disabled={regenerating === "headline"}
+                className="inline-flex items-center gap-1.5 text-xs font-medium text-purple-600 hover:text-purple-700 disabled:text-purple-400 px-2 py-1 rounded hover:bg-purple-50 transition"
+                title="Regenerate with AI"
+              >
+                {regenerating === "headline" ? (
+                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                ) : (
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                  </svg>
+                )}
+                {regenerating === "headline" ? "Regenerating..." : "AI Regenerate"}
+              </button>
+            </div>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -306,9 +401,29 @@ export default function EditorPage({ params }: PageProps) {
 
           {/* About Section */}
           <div className="mb-8">
-            <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-3">
-              About Section
-            </h3>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">
+                About Section
+              </h3>
+              <button
+                onClick={() => handleRegenerate("about")}
+                disabled={regenerating === "about"}
+                className="inline-flex items-center gap-1.5 text-xs font-medium text-purple-600 hover:text-purple-700 disabled:text-purple-400 px-2 py-1 rounded hover:bg-purple-50 transition"
+                title="Regenerate with AI"
+              >
+                {regenerating === "about" ? (
+                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                ) : (
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                  </svg>
+                )}
+                {regenerating === "about" ? "Regenerating..." : "AI Regenerate"}
+              </button>
+            </div>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -335,6 +450,85 @@ export default function EditorPage({ params }: PageProps) {
             </div>
           </div>
 
+          {/* Reviews Section */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">
+                Customer Reviews
+              </h3>
+              <button
+                onClick={addReview}
+                className="inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-700 px-2 py-1 rounded hover:bg-blue-50 transition"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                Add Review
+              </button>
+            </div>
+            <div className="space-y-4">
+              {reviews.length === 0 ? (
+                <p className="text-sm text-gray-400 italic">No reviews yet. Click &quot;Add Review&quot; to add one.</p>
+              ) : (
+                reviews.map((review, index) => (
+                  <div key={index} className="border border-gray-200 rounded-lg p-3 relative">
+                    <button
+                      onClick={() => deleteReview(index)}
+                      className="absolute top-2 right-2 text-gray-400 hover:text-red-500 transition"
+                      title="Delete review"
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                    <div className="mb-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Customer Name
+                      </label>
+                      <input
+                        type="text"
+                        value={review.name}
+                        onChange={(e) => updateReview(index, "name", e.target.value)}
+                        placeholder="John D."
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                      />
+                    </div>
+                    <div className="mb-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Rating
+                      </label>
+                      <div className="flex gap-1">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <button
+                            key={star}
+                            onClick={() => updateReview(index, "rating", star)}
+                            className={`text-xl ${
+                              star <= review.rating ? "text-yellow-400" : "text-gray-300"
+                            } hover:text-yellow-400 transition`}
+                          >
+                            ★
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Review Text
+                      </label>
+                      <textarea
+                        value={review.text}
+                        onChange={(e) => updateReview(index, "text", e.target.value)}
+                        placeholder="Great service, highly recommend!"
+                        rows={2}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                      />
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
           {/* Theme Selection */}
           <div className="mb-8">
             <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-3">
@@ -351,6 +545,39 @@ export default function EditorPage({ params }: PageProps) {
                   title={color}
                 />
               ))}
+            </div>
+          </div>
+
+          {/* Contact Information */}
+          <div className="mb-8">
+            <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-3">
+              Contact Information
+            </h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Phone Number
+                </label>
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="(555) 123-4567"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Public Email
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="contact@business.com"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
             </div>
           </div>
         </aside>

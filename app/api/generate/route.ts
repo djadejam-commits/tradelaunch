@@ -97,6 +97,8 @@ Rules:
     await setDoc(doc(db, 'sites', siteId), {
       name: businessName,
       subdomain,
+      city,
+      trade,
       contact: {
         phone: phone || '',
         email: email || '',

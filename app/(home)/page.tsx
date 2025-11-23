@@ -52,23 +52,30 @@ export default function HomePage() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+    <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
       {/* Hero Section */}
-      <section className="pt-20 pb-12 px-4">
+      <section className="pt-24 pb-16 px-4">
         <div className="max-w-3xl mx-auto text-center">
-          <h1 className="text-5xl font-bold text-gray-900 mb-4">
-            Build your Site in Seconds
+          <div className="inline-block mb-4 px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
+            AI-Powered Website Builder
+          </div>
+          <h1 className="text-5xl md:text-6xl font-bold tracking-tight mb-6">
+            <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
+              Build your Site
+            </span>
+            <br />
+            <span className="text-gray-900">in Seconds</span>
           </h1>
-          <p className="text-xl text-gray-600">
-            Enter your business details and let AI create a professional website for you.
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
+            Enter your business details and let AI create a professional website for you. No coding required.
           </p>
         </div>
       </section>
 
       {/* Form Section */}
-      <section className="pb-20 px-4">
+      <section className="pb-24 px-4">
         <div className="max-w-md mx-auto">
-          <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-lg p-8">
+          <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
             {/* Business Name */}
             <div className="mb-6">
               <label htmlFor="businessName" className="block text-sm font-medium text-gray-700 mb-2">
@@ -158,9 +165,17 @@ export default function HomePage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-blue-600 text-white font-semibold py-4 px-6 rounded-lg hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed transition-colors text-lg"
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold py-4 px-6 rounded-xl hover:from-blue-700 hover:to-purple-700 hover:scale-[1.02] active:scale-[0.98] disabled:from-blue-400 disabled:to-purple-400 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all duration-200 text-lg shadow-lg shadow-blue-500/25"
             >
-              {isLoading ? 'Generating...' : 'Generate Site'}
+              {isLoading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  Generating...
+                </span>
+              ) : 'Generate Site'}
             </button>
           </form>
         </div>
