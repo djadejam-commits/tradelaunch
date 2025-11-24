@@ -26,7 +26,7 @@ export default function LeadForm({ siteId }: LeadFormProps) {
     setError(null);
 
     try {
-      const response = await fetch("/api/lead", {
+      const response = await fetch("/api/contact", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
