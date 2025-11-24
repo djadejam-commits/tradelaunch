@@ -1,6 +1,7 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
+// Define public routes that don't require login
 const isPublicRoute = createRouteMatcher([
   "/",
   "/sign-in(.*)",
@@ -10,45 +11,46 @@ const isPublicRoute = createRouteMatcher([
   "/site(.*)",
 ]);
 
-// THE FIX: Add your Vercel domain here so it is treated as the "Main App"
-const rootDomains = ["localhost", "127.0.0.1", "tradelaunch.vercel.app"];
-
 export default clerkMiddleware(async (auth, req) => {
-  const host = req.headers.get("host") || "";
-  const url = req.nextUrl.clone();
+  const url = req.nextUrl;
+  
+  // Get the hostname (e.g. "tradelaunch.vercel.app" or "localhost:3000")
+  const hostname = req.headers.get("host");
 
-  // Remove port from host for comparison (e.g. localhost:3000 -> localhost)
-  const hostname = host.split(":")[0];
+  // ---------------------------------------------------------
+  // 1. THE FIX: Force Vercel & Localhost to be "Main App"
+  // ---------------------------------------------------------
+  let isMainApp = false;
 
-  // Check if this is a root domain (Main App)
-  // We also check if it ends with .vercel.app to handle Vercel preview URLs automatically
-  const isRootDomain = 
-    rootDomains.includes(hostname) || 
-    hostname.endsWith(".vercel.app");
-
-  // 1. Subdomain Logic (Public Renderer)
-  if (!isRootDomain) {
-    // Extract subdomain logic
-    // Example: joes-plumbing.tradelaunch.vercel.app -> joes-plumbing
-    
-    // We need to be careful about how we split based on where we are hosting
-    let subdomain = hostname.split(".")[0];
-    
-    // If we are on a custom domain (e.g. tradelaunch.com), splitting by dot is fine.
-    // If we are on Vercel (e.g. joes.tradelaunch.vercel.app), we need to handle that structure if you buy a domain later.
-    // For now, simple split works for localhost.
-    
-    // Rewrite to /site/[subdomain]
-    url.pathname = `/site/${subdomain}${url.pathname}`;
-    return NextResponse.rewrite(url);
+  if (hostname && (
+    hostname.includes("vercel.app") || // Any Vercel deployment is the Home Page
+    hostname.includes("localhost") ||  // Localhost is the Home Page
+    hostname === "127.0.0.1"           // Local IP is the Home Page
+  )) {
+    isMainApp = true;
   }
 
-  // 2. Protect non-public routes (like /dashboard)
+  // ---------------------------------------------------------
+  // 2. Rewrite Logic (Only for Custom Domains in the future)
+  // ---------------------------------------------------------
+  if (!isMainApp) {
+    // If we are here, it means we are on a custom domain (e.g. "joes-plumbing.com")
+    // Rewrite to the site renderer
+    // e.g. foo.com -> /site/foo
+    
+    const subdomain = hostname?.split(".")[0];
+    if (subdomain) {
+       return NextResponse.rewrite(new URL(`/site/${subdomain}${url.pathname}`, req.url));
+    }
+  }
+
+  // ---------------------------------------------------------
+  // 3. Auth Protection
+  // ---------------------------------------------------------
   if (!isPublicRoute(req)) {
     await auth.protect();
   }
 
-  // Default Next.js behavior
   return NextResponse.next();
 });
 
