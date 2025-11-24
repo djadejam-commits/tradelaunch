@@ -2,13 +2,19 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link"; // <--- NEW IMPORT
+import Link from "next/link";
 
 export default function Home() {
   const router = useRouter();
   const [businessName, setBusinessName] = useState("");
   const [city, setCity] = useState("");
   const [trade, setTrade] = useState("Plumbing");
+  
+  // --- RESTORED FIELDS ---
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  // -----------------------
+
   const [isGenerating, setIsGenerating] = useState(false);
 
   const handleGenerate = async (e: React.FormEvent) => {
@@ -19,7 +25,8 @@ export default function Home() {
       const res = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ businessName, city, trade }),
+        // Send ALL data including contact info
+        body: JSON.stringify({ businessName, city, trade, phone, email }),
       });
 
       const data = await res.json();
@@ -40,7 +47,7 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex flex-col relative">
       
-      {/* --- NEW HEADER SECTION --- */}
+      {/* Login Button (Keep this) */}
       <div className="absolute top-0 right-0 p-6 z-10">
         <Link 
           href="/dashboard" 
@@ -49,7 +56,6 @@ export default function Home() {
           Login to Dashboard →
         </Link>
       </div>
-      {/* -------------------------- */}
 
       <div className="flex-1 flex flex-col items-center justify-center p-4">
         <div className="text-center mb-10 max-w-2xl">
@@ -63,6 +69,8 @@ export default function Home() {
 
         <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 border border-slate-100">
           <form onSubmit={handleGenerate} className="space-y-4">
+            
+            {/* Business Name */}
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">Business Name</label>
               <input
@@ -75,6 +83,7 @@ export default function Home() {
               />
             </div>
             
+            {/* City */}
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">City</label>
               <input
@@ -87,6 +96,33 @@ export default function Home() {
               />
             </div>
 
+            {/* --- RESTORED PHONE INPUT --- */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Phone Number</label>
+              <input
+                type="tel"
+                required
+                className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none"
+                placeholder="(555) 123-4567"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+              />
+            </div>
+
+            {/* --- RESTORED EMAIL INPUT --- */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Public Email</label>
+              <input
+                type="email"
+                required
+                className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none"
+                placeholder="help@joesplumbing.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+
+            {/* Trade */}
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">Trade</label>
               <select
