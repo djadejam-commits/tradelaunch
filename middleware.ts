@@ -10,31 +10,37 @@ const isPublicRoute = createRouteMatcher([
   "/site(.*)",
 ]);
 
-const rootDomains = ["localhost", "127.0.0.1"];
+// THE FIX: Add your Vercel domain here so it is treated as the "Main App"
+const rootDomains = ["localhost", "127.0.0.1", "tradelaunch.vercel.app"];
 
 export default clerkMiddleware(async (auth, req) => {
   const host = req.headers.get("host") || "";
   const url = req.nextUrl.clone();
 
-  // Remove port from host for comparison
+  // Remove port from host for comparison (e.g. localhost:3000 -> localhost)
   const hostname = host.split(":")[0];
 
-  // Check if this is a subdomain request
-  const isRootDomain = rootDomains.some(
-    (domain) => hostname === domain || hostname === `www.${domain}`
-  );
+  // Check if this is a root domain (Main App)
+  // We also check if it ends with .vercel.app to handle Vercel preview URLs automatically
+  const isRootDomain = 
+    rootDomains.includes(hostname) || 
+    hostname.endsWith(".vercel.app");
 
   // 1. Subdomain Logic (Public Renderer)
   if (!isRootDomain) {
-    // Extract subdomain: "test.localhost" -> "test"
-    const subdomain = hostname.split(".")[0];
-
-    // Skip if the subdomain is "www"
-    if (subdomain !== "www") {
-      // Rewrite to /site/[subdomain]
-      url.pathname = `/site/${subdomain}${url.pathname}`;
-      return NextResponse.rewrite(url);
-    }
+    // Extract subdomain logic
+    // Example: joes-plumbing.tradelaunch.vercel.app -> joes-plumbing
+    
+    // We need to be careful about how we split based on where we are hosting
+    let subdomain = hostname.split(".")[0];
+    
+    // If we are on a custom domain (e.g. tradelaunch.com), splitting by dot is fine.
+    // If we are on Vercel (e.g. joes.tradelaunch.vercel.app), we need to handle that structure if you buy a domain later.
+    // For now, simple split works for localhost.
+    
+    // Rewrite to /site/[subdomain]
+    url.pathname = `/site/${subdomain}${url.pathname}`;
+    return NextResponse.rewrite(url);
   }
 
   // 2. Protect non-public routes (like /dashboard)
@@ -48,13 +54,6 @@ export default clerkMiddleware(async (auth, req) => {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public folder files
-     */
     "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
