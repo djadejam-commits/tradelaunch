@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 
@@ -18,7 +18,7 @@ const STAGES: Stage[] = [
   { id: "finalizing", label: "Finalizing your site", duration: 1500 },
 ];
 
-export default function LoadingGenPage() {
+function LoadingGenContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [currentStage, setCurrentStage] = useState(0);
@@ -266,5 +266,19 @@ export default function LoadingGenPage() {
         </Card>
       </div>
     </main>
+  );
+}
+
+export default function LoadingGenPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
+          <div className="text-slate-400">Loading...</div>
+        </div>
+      }
+    >
+      <LoadingGenContent />
+    </Suspense>
   );
 }
