@@ -63,7 +63,13 @@ export default function Home() {
       const data = await res.json();
       if (data.subdomain) {
         // Redirect to the new site
-        window.location.href = `${window.location.protocol}//${data.subdomain}.${window.location.host}`;
+        // Extract root domain (remove www if present)
+        const hostname = window.location.hostname;
+        const rootDomain = hostname.startsWith('www.')
+          ? hostname.slice(4)
+          : hostname;
+
+        window.location.href = `${window.location.protocol}//${data.subdomain}.${rootDomain}`;
       } else {
         alert("Error generating site");
       }
