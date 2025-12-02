@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "TradeLaunch",
-  description: "Generate landing pages for your business in seconds",
+  title: "QuickProSite - Fast Professional Websites",
+  description: "Generate professional websites for your business in seconds with AI-powered content and real Google reviews",
 };
 
 export default function RootLayout({

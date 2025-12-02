@@ -23,9 +23,9 @@ export default clerkMiddleware(async (auth, req) => {
   if (hostname && (
     hostname === "localhost:3000" ||           // Exact Localhost
     hostname === "127.0.0.1" ||                // Exact IP
-    hostname === "tradelaunch.it.com" ||       // Exact Root Domain
-    hostname === "www.tradelaunch.it.com" ||   // Exact WWW
-    hostname === "tradelaunch.vercel.app"      // Exact Vercel App
+    hostname === "quickprosite.com" ||         // Exact Root Domain
+    hostname === "www.quickprosite.com" ||     // Exact WWW
+    hostname === "quickprosite.vercel.app"     // Exact Vercel App
   )) {
     isMainApp = true;
   }

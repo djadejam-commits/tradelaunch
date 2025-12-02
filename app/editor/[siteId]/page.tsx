@@ -178,6 +178,18 @@ export default function EditorPage({ params }: PageProps) {
     setServices(updated);
   };
 
+  const addService = () => {
+    setServices([...services, { title: '', desc: '' }]);
+  };
+
+  const deleteService = (index: number) => {
+    if (services.length > 1) {
+      setServices(services.filter((_, i) => i !== index));
+    } else {
+      showToast('Must have at least one service');
+    }
+  };
+
   const addReview = () => {
     setReviews([...reviews, { name: "", text: "", rating: 5 }]);
   };
@@ -283,7 +295,11 @@ export default function EditorPage({ params }: PageProps) {
           </div>
           <div className="flex items-center gap-4">
             <a
-              href={`http://${site.subdomain}.localhost:3000`}
+              href={
+                process.env.NODE_ENV === 'production'
+                  ? `https://${site.subdomain}.quickprosite.com`
+                  : `http://${site.subdomain}.localhost:3000`
+              }
               target="_blank"
               rel="noopener noreferrer"
               className="text-blue-600 hover:text-blue-700 text-sm"
@@ -370,12 +386,34 @@ export default function EditorPage({ params }: PageProps) {
 
           {/* Services Section */}
           <div className="mb-8">
-            <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-3">
-              Services
-            </h3>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">
+                Services
+              </h3>
+              <button
+                onClick={addService}
+                className="inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-700 px-2 py-1 rounded hover:bg-blue-50 transition"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                Add Service
+              </button>
+            </div>
             <div className="space-y-4">
               {services.map((service, index) => (
-                <div key={index} className="border border-gray-200 rounded-lg p-3">
+                <div key={index} className="border border-gray-200 rounded-lg p-3 relative">
+                  {services.length > 1 && (
+                    <button
+                      onClick={() => deleteService(index)}
+                      className="absolute top-2 right-2 text-gray-400 hover:text-red-500 transition"
+                      title="Delete service"
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  )}
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Service {index + 1} Title
                   </label>
@@ -635,6 +673,44 @@ export default function EditorPage({ params }: PageProps) {
                   </p>
                 </div>
               </section>
+
+              {/* Reviews Section */}
+              {reviews.length > 0 && (
+                <section className="py-12 px-4 bg-white">
+                  <div className="max-w-5xl mx-auto">
+                    <h2 className="text-2xl font-bold text-center mb-8 text-gray-800">
+                      What Our Customers Say
+                    </h2>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      {reviews.map((review, index) => (
+                        <div
+                          key={index}
+                          className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm"
+                        >
+                          <div className="flex mb-3">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <span
+                                key={star}
+                                className={`text-xl ${
+                                  star <= review.rating ? "text-yellow-400" : "text-gray-300"
+                                }`}
+                              >
+                                ★
+                              </span>
+                            ))}
+                          </div>
+                          <p className="text-gray-700 text-sm mb-4 italic">
+                            &quot;{review.text}&quot;
+                          </p>
+                          <p className="text-gray-600 text-xs font-semibold">
+                            — {review.name}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </section>
+              )}
 
               {/* Footer */}
               <footer className={`${bgColor} text-white py-6 px-4`}>

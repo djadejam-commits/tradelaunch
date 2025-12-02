@@ -3,19 +3,42 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import GoogleBusinessSearch from "@/components/GoogleBusinessSearch";
+import type { GoogleBusinessData } from "@/app/actions/fetch-google-business";
 
 export default function Home() {
   const router = useRouter();
   const [businessName, setBusinessName] = useState("");
   const [city, setCity] = useState("");
   const [trade, setTrade] = useState("Plumbing");
-  
+
   // --- RESTORED FIELDS ---
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   // -----------------------
 
+  // Google Business data
+  const [googleData, setGoogleData] = useState<GoogleBusinessData | null>(null);
+  const [placeId, setPlaceId] = useState<string | null>(null);
+
   const [isGenerating, setIsGenerating] = useState(false);
+
+  // Handler when user selects a Google Business listing
+  const handleGoogleBusinessFound = (data: GoogleBusinessData & { placeId: string }) => {
+    setGoogleData(data);
+    setPlaceId(data.placeId);
+
+    // Pre-populate form fields from Google data
+    setBusinessName(data.displayName);
+    if (data.nationalPhoneNumber) {
+      setPhone(data.nationalPhoneNumber);
+    }
+    // Extract city from masked address (e.g., "Serving Austin, TX & Surrounding Areas")
+    const cityMatch = data.formattedAddress.match(/Serving ([^,]+),/);
+    if (cityMatch) {
+      setCity(cityMatch[1]);
+    }
+  };
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,8 +48,16 @@ export default function Home() {
       const res = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        // Send ALL data including contact info
-        body: JSON.stringify({ businessName, city, trade, phone, email }),
+        // Send ALL data including Google Business data if available
+        body: JSON.stringify({
+          businessName,
+          city,
+          trade,
+          phone,
+          email,
+          placeId: placeId || undefined,
+          googleData: googleData || undefined,
+        }),
       });
 
       const data = await res.json();
@@ -69,7 +100,37 @@ export default function Home() {
 
         <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 border border-slate-100">
           <form onSubmit={handleGenerate} className="space-y-4">
-            
+
+            {/* Google Business Search (Optional) */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                Find Your Business on Google (Optional)
+              </label>
+              <GoogleBusinessSearch onBusinessFound={handleGoogleBusinessFound} />
+              {googleData && (
+                <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                  <p className="text-sm text-green-700">
+                    ✓ Found: <strong>{googleData.displayName}</strong>
+                    {googleData.rating && (
+                      <span className="ml-2">
+                        ({googleData.rating}★ · {googleData.userRatingTotal} reviews)
+                      </span>
+                    )}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* OR Divider */}
+            <div className="relative py-2">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-slate-200"></div>
+              </div>
+              <div className="relative flex justify-center">
+                <span className="bg-white px-3 text-sm text-slate-500">OR enter manually</span>
+              </div>
+            </div>
+
             {/* Business Name */}
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">Business Name</label>

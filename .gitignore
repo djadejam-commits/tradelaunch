@@ -60,3 +60,4 @@ firebase-adminsdk*.json
 .vscode/
 *.swp
 *.swo
+# BMAD (local only)

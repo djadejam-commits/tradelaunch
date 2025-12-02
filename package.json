@@ -1,5 +1,5 @@
 {
-  "name": "tradelaunch",
+  "name": "quickprosite",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -7,16 +7,21 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "seed": "tsx scripts/seed-db.ts"
+    "seed": "tsx scripts/seed-db.ts",
+    "bmad:refresh": "bmad-method install -f -i codex",
+    "bmad:list": "bmad-method list:agents",
+    "bmad:validate": "bmad-method validate"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.35.4",
+    "@react-google-maps/api": "^2.20.7",
     "firebase": "^12.6.0",
     "next": "16.0.3",
     "openai": "^6.9.1",
     "react": "19.2.0",
     "react-dom": "19.2.0",
-    "resend": "^6.5.2"
+    "resend": "^6.5.2",
+    "use-places-autocomplete": "^4.0.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

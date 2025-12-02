@@ -3,6 +3,8 @@ import { auth } from '@clerk/nextjs/server';
 import OpenAI from 'openai';
 import { db } from '@/lib/firebase';
 import { doc, setDoc } from 'firebase/firestore';
+import { fetchGoogleBusiness, type GoogleBusinessData } from '@/app/actions/fetch-google-business';
+import { buildEnhancedPrompt } from '@/lib/prompts';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -14,6 +16,14 @@ interface GenerateRequest {
   trade: string;
   phone?: string;
   email?: string;
+  placeId?: string;
+  googleData?: GoogleBusinessData;
+}
+
+interface Review {
+  name: string;
+  text: string;
+  rating: number;
 }
 
 interface SiteContent {
@@ -30,6 +40,7 @@ interface SiteContent {
     heading: string;
     body: string;
   };
+  reviews?: Review[];
   theme: 'blue' | 'red' | 'green';
 }
 
@@ -46,7 +57,7 @@ export async function POST(request: NextRequest) {
   try {
     const { userId } = await auth();
     const body: GenerateRequest = await request.json();
-    const { businessName, city, trade, phone, email } = body;
+    let { businessName, city, trade, phone, email, placeId, googleData } = body;
 
     if (!businessName || !city || !trade) {
       return NextResponse.json(
@@ -55,22 +66,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const systemPrompt = 'You are a copywriter for trade businesses. Output valid JSON only.';
+    // If placeId provided but no googleData, fetch it server-side
+    if (placeId && !googleData) {
+      try {
+        googleData = await fetchGoogleBusiness(placeId);
+      } catch (error) {
+        console.error('Failed to fetch Google Business data:', error);
+        // Continue without Google data (fallback to AI-only)
+      }
+    }
 
-    const userPrompt = `Generate content for ${businessName} in ${city} doing ${trade}.
-
-Output must follow this exact JSON schema:
-{
-  "hero": { "headline": "string", "subheadline": "string", "cta": "string" },
-  "services": [{ "title": "string", "desc": "string" }],
-  "about": { "heading": "string", "body": "string" },
-  "theme": "blue" | "red" | "green"
-}
-
-Rules:
-- services array must have exactly 3 items
-- theme must be one of: "blue", "red", or "green"
-- All text should be professional and compelling`;
+    // Use enhanced prompt system with trade and location context
+    const { systemPrompt, userPrompt } = buildEnhancedPrompt({
+      businessName,
+      city,
+      trade,
+      googleData,
+    });
 
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o',
@@ -94,6 +106,16 @@ Rules:
     const subdomain = slugify(businessName);
     const siteId = `${subdomain}-${Date.now()}`;
 
+    // If we have Google reviews, map them to the format expected by the site
+    let reviews: Review[] = [];
+    if (googleData && googleData.reviews && googleData.reviews.length > 0) {
+      reviews = googleData.reviews.map((review) => ({
+        name: review.author,
+        text: review.text,
+        rating: review.rating,
+      }));
+    }
+
     await setDoc(doc(db, 'sites', siteId), {
       name: businessName,
       subdomain,
@@ -103,7 +125,10 @@ Rules:
         phone: phone || '',
         email: email || '',
       },
-      content: siteContent,
+      content: {
+        ...siteContent,
+        reviews, // Include Google reviews
+      },
       userId: userId || null,
       createdAt: new Date().toISOString(),
     });
