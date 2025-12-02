@@ -50,7 +50,7 @@ export default async function DashboardPage() {
       <header className="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
           <Link href="/" className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            TradeLaunch
+            QuickProSite
           </Link>
           <div className="flex items-center gap-4">
             <span className="text-gray-600 text-sm hidden sm:block">
@@ -119,7 +119,7 @@ export default async function DashboardPage() {
                       {site.name}
                     </h2>
                     <p className="text-gray-500 text-sm mb-4 font-mono">
-                      {site.subdomain}.localhost:3000
+                      {site.subdomain}.quickprosite.com
                     </p>
 
                     {/* Card Footer */}
@@ -134,7 +134,7 @@ export default async function DashboardPage() {
                         Edit
                       </Link>
                       <a
-                        href={`http://${site.subdomain}.localhost:3000`}
+                        href={`https://${site.subdomain}.quickprosite.com`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 transition"
