@@ -38,22 +38,22 @@ function SearchInput({ onBusinessFound }: { onBusinessFound: (data: any) => void
   };
 
   return (
-    <div className="relative w-full max-w-md">
+    <div className="relative w-full">
       <input
         value={value}
         onChange={(e) => setValue(e.target.value)}
         disabled={!ready}
         placeholder="Search for your business..."
-        className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none text-black"
+        className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 placeholder:text-slate-500 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/50 focus:outline-none transition-all disabled:opacity-50"
       />
-      
+
       {status === "OK" && (
-        <ul className="absolute z-10 w-full bg-white border border-gray-300 rounded-lg mt-1 shadow-lg max-h-60 overflow-auto">
+        <ul className="absolute z-10 w-full bg-slate-800 border border-slate-700 rounded-lg mt-2 shadow-xl max-h-60 overflow-auto">
           {data.map(({ place_id, description }) => (
             <li
               key={place_id}
               onClick={() => handleSelect(description, place_id)}
-              className="p-3 hover:bg-gray-100 cursor-pointer text-gray-800 text-sm"
+              className="p-3 hover:bg-slate-700 cursor-pointer text-slate-100 text-sm border-b border-slate-700/50 last:border-b-0 transition-colors"
             >
               {description}
             </li>
@@ -73,11 +73,11 @@ export default function GoogleBusinessSearch({ onBusinessFound }: { onBusinessFo
   });
 
   if (loadError) {
-    return <div className="text-red-500">Error loading Maps API</div>;
+    return <div className="text-red-400 text-sm text-center">Error loading Maps API</div>;
   }
 
   if (!isLoaded) {
-    return <div className="text-gray-500">Loading Search...</div>;
+    return <div className="text-slate-500 text-sm text-center">Loading Search...</div>;
   }
 
   // We only render the Input (and run the hook) if isLoaded is TRUE

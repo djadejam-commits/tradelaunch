@@ -8,6 +8,8 @@ const isPublicRoute = createRouteMatcher([
   "/api/generate",
   "/api/contact",
   "/site(.*)",
+  "/test",  // Component testing page
+  "/loading-gen",  // Site generation loading page
 ]);
 
 export default clerkMiddleware(async (auth, req) => {

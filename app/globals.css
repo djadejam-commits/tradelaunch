@@ -1,26 +1,96 @@
 @import "tailwindcss";
 
+/* QuickProSite Design System - Dark Mode */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Backgrounds */
+  --background: #0a0a0f;  /* slate-950 */
+  --foreground: #f8fafc;   /* slate-50 */
+  --background-secondary: #1a1a24;  /* slate-900 */
+  --background-tertiary: #2a2a3a;   /* slate-800 */
+
+  /* Text */
+  --text-primary: #f8fafc;    /* slate-50 */
+  --text-secondary: #94a3b8;  /* slate-400 */
+  --text-tertiary: #64748b;   /* slate-500 */
+
+  /* Borders */
+  --border-subtle: rgba(148, 163, 184, 0.1);  /* slate-400 @ 10% */
+  --border-default: rgba(148, 163, 184, 0.2);  /* slate-400 @ 20% */
 }
 
 @theme inline {
+  /* Use CSS variables in Tailwind */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+
+  /* Fonts */
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* Custom colors for QuickProSite */
+  --color-slate-950: #0a0a0f;
+  --color-slate-900: #1a1a24;
+  --color-slate-800: #2a2a3a;
+
+  /* Animations */
+  --animate-fadeUp: fadeUp 0.2s ease-out;
+  --animate-slideIn: slideIn 0.3s ease-out;
+  --animate-glowPulse: glowPulse 2s ease-in-out infinite;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* Keyframe Animations */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes glowPulse {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(139, 92, 246, 1);
+  }
+}
+
+/* Global Styles */
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-feature-settings: "rlig" 1, "calt" 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Glassmorphism Utility */
+.glass {
+  background: rgba(26, 26, 36, 0.6);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+/* Gradient Text Utility */
+.gradient-text {
+  background: linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }

@@ -124,7 +124,7 @@ export default async function RendererPage({ params }: PageProps) {
 
   if (!site) {
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center">
+      <main className="flex min-h-screen flex-col items-center justify-center" suppressHydrationWarning>
         <h1 className="text-4xl font-bold">404: Site Not Found</h1>
       </main>
     );
@@ -133,7 +133,7 @@ export default async function RendererPage({ params }: PageProps) {
   // Fallback for old data without content
   if (!site.content) {
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center bg-gray-100">
+      <main className="flex min-h-screen flex-col items-center justify-center bg-gray-100" suppressHydrationWarning>
         <h1 className="text-4xl font-bold text-gray-800">{site.name}</h1>
         <p className="text-xl text-gray-500 mt-4">Under Construction</p>
       </main>
@@ -148,7 +148,7 @@ export default async function RendererPage({ params }: PageProps) {
   const hasReviews = reviews && reviews.length > 0;
 
   return (
-    <main className="min-h-screen pb-20 md:pb-0">
+    <main className="min-h-screen pb-20 md:pb-0" suppressHydrationWarning>
       {/* Hero Section */}
       <section className={`${bgGradient} text-white py-28 px-4 relative overflow-hidden`}>
         {/* Background Pattern */}
